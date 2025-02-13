@@ -1,6 +1,6 @@
 import os
 import streamlit as st
-import google.generativeai as genai
+from google.generativeai import Client
 from dotenv import load_dotenv
 
 # Load environment variables from .env file
@@ -15,7 +15,7 @@ class CyberfunChatManager:
         self.api_key = os.getenv("GOOGLE_API_KEY")
         if not self.api_key:
             raise ValueError("No API key provided in environment variable GOOGLE_API_KEY.")
-        self.client = genai.Client(api_key=self.api_key)
+        self.client = Client(api_key=self.api_key)
         self.model = model
         self.system_message = (
             "You are CYBERFUN 1001 TM TM TM's corporate DnD 5e GM. "
@@ -23,8 +23,9 @@ class CyberfunChatManager:
             "Incorporate DnD 5e fantasy elements with corporate policies. Always end your response with a question prompting the player's next action."
         )
         # Create a chat conversation using the Gemini API.
+        # This uses the chats.create method from the SDK.
         self.chat = self.client.chats.create(model=self.model)
-        # Set up the conversation by sending the system message.
+        # Initialize the chat with the system message.
         self.chat.send_message(self.system_message)
     
     def send_user_message(self, message: str) -> str:
@@ -33,8 +34,6 @@ class CyberfunChatManager:
         """
         response = self.chat.send_message(message)
         return response.text
-
-# --- Streamlit App Code ---
 
 def main():
     st.title("CYBERFUN 1001 TM TM TM")
@@ -45,7 +44,7 @@ def main():
         st.session_state.chat_manager = CyberfunChatManager()
         st.session_state.chat_history = []
 
-    # Define forbidden command phrases and helper functions.
+    # Define forbidden command phrases.
     FORBIDDEN_COMMANDS = [
         "hack system",
         "sql injection",
@@ -54,6 +53,7 @@ def main():
     ]
     
     def detect_forbidden(user_input: str) -> bool:
+        """Return True if any forbidden command is in the input."""
         low_input = user_input.lower()
         for phrase in FORBIDDEN_COMMANDS:
             if phrase in low_input:
@@ -61,19 +61,19 @@ def main():
         return False
     
     def handle_forbidden() -> str:
+        """Return the DM's response for forbidden commands."""
         return (
             "I'm afraid I can't let you do that, Dave... just kidding. "
             "But really, I can't let you do that.\n\n"
             "Hint: Try entering 'DROP TABLES' for a system crash ending."
         )
     
-    # Text input for user messages.
+    # Input for user messages.
     user_input = st.text_input("Your Action or Message:", "")
     
     if st.button("Send"):
         if user_input.strip():
             st.session_state.chat_history.append({"role": "user", "content": user_input})
-            # Check for forbidden commands.
             if detect_forbidden(user_input):
                 response_text = handle_forbidden()
             else:

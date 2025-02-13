@@ -1,6 +1,6 @@
 import os
 import streamlit as st
-from google import genai
+import google.generativeai as genai
 from dotenv import load_dotenv
 
 # Load environment variables from .env file
@@ -39,13 +39,13 @@ class CyberfunChatManager:
 def main():
     st.title("CYBERFUN 1001 TM TM TM")
     st.subheader("Your DND 5E GM of the Future (TM)!")
-    
+
     # Initialize chat manager and conversation history in session state if not already present.
     if "chat_manager" not in st.session_state:
         st.session_state.chat_manager = CyberfunChatManager()
         st.session_state.chat_history = []
-    
-    # Define forbidden command phrases and related helper functions.
+
+    # Define forbidden command phrases and helper functions.
     FORBIDDEN_COMMANDS = [
         "hack system",
         "sql injection",
